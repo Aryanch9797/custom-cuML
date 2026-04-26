@@ -52,7 +52,7 @@ class CuMLTrainer:
         plt.xlabel('Predicted')
         plt.ylabel('True')
         plt.show()
-        return model, oof_pred_proba, test_pred_proba
+        return oof_pred_proba, test_pred_proba
     
     def RandomForestRegressor(self, fine_tune=False, n_trials=25):
         if fine_tune:
@@ -80,7 +80,7 @@ class CuMLTrainer:
 
         # Final oof results
         print(f"OOF MSE: {mean_squared_error(self.y, oof_pred)}, R2: {r2_score(self.y, oof_pred)}, MAE: {mean_absolute_error(self.y, oof_pred)}")
-        return model, oof_pred, test_pred
+        return oof_pred, test_pred
     
     def LinearRegression(self, fine_tune=False, n_trials=25):
         if fine_tune:
@@ -108,7 +108,7 @@ class CuMLTrainer:
 
         # Final oof results
         print(f"OOF MSE: {mean_squared_error(self.y, oof_pred)}, R2: {r2_score(self.y, oof_pred)}, MAE: {mean_absolute_error(self.y, oof_pred)}")
-        return model, oof_pred, test_pred
+        return oof_pred, test_pred
     
     def LogisticRegression(self, fine_tune=False, n_trials=25):
         if fine_tune:
@@ -143,7 +143,7 @@ class CuMLTrainer:
         plt.xlabel('Predicted')
         plt.ylabel('True')
         plt.show()
-        return model, oof_pred_proba, test_pred_proba
+        return oof_pred_proba, test_pred_proba
     
     def ElasticNet(self, fine_tune=False, n_trials=25):
         if fine_tune:
@@ -171,7 +171,7 @@ class CuMLTrainer:
 
         # Final oof results
         print(f"OOF MSE: {mean_squared_error(self.y, oof_pred)}, R2: {r2_score(self.y, oof_pred)}, MAE: {mean_absolute_error(self.y, oof_pred)}")
-        return model, oof_pred, test_pred
+        return oof_pred, test_pred
     
     def KNeighborsClassifier(self, fine_tune=False, n_trials=25):
         if fine_tune:
@@ -206,7 +206,7 @@ class CuMLTrainer:
         plt.xlabel('Predicted')
         plt.ylabel('True')
         plt.show()
-        return model, oof_pred_proba, test_pred_proba
+        return oof_pred_proba, test_pred_proba
     
     def KNeighborsRegressor(self, fine_tune=False, n_trials=25):
         if fine_tune:
@@ -234,9 +234,32 @@ class CuMLTrainer:
 
         # Final oof results
         print(f"OOF MSE: {mean_squared_error(self.y, oof_pred)}, R2: {r2_score(self.y, oof_pred)}, MAE: {mean_absolute_error(self.y, oof_pred)}")
-        return model, oof_pred, test_pred
+        return oof_pred, test_pred
     
-    def Baseline_comparison(self):
-        
+    def Baseline_comparison_regressor(self):
+        scores = {}
+        rf_oof_pred, rf_test_pred = self.RandomForestRegressor()
+        lr_oof_pred, lr_test_pred = self.LinearRegression()
+        en_oof_pred, en_test_pred = self.ElasticNet()
+        knn_reg_oof_pred, knn_reg_test_pred = self.KNeighborsRegressor()
+
+        scores['RandomForestRegressor'] = (mean_squared_error(self.y, rf_oof_pred), r2_score(self.y, rf_oof_pred), mean_absolute_error(self.y, rf_oof_pred))
+        scores['LinearRegression'] = (mean_squared_error(self.y, lr_oof_pred), r2_score(self.y, lr_oof_pred), mean_absolute_error(self.y, lr_oof_pred))
+        scores['ElasticNet'] = (mean_squared_error(self.y, en_oof_pred), r2_score(self.y, en_oof_pred), mean_absolute_error(self.y, en_oof_pred))
+        scores['KNeighborsRegressor'] = (mean_squared_error(self.y, knn_reg_oof_pred), r2_score(self.y, knn_reg_oof_pred), mean_absolute_error(self.y, knn_reg_oof_pred))   
+
+        # Comparision plots
+        metrics = ['MSE', 'R2', 'MAE']
+        for i, metric in enumerate(metrics):
+            plt.figure(figsize=(8, 5))
+            sns.barplot(x=list(scores.keys()), y=[scores[model][i] for model in scores])
+            plt.title(f'Model Comparison - {metric}')
+            plt.ylabel(metric)
+            plt.xlabel('Model')
+            plt.xticks(rotation=45)
+            plt.show()
+        return scores
+
+
 
             
