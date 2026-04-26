@@ -25,7 +25,8 @@ class CuMLTrainer:
 
     def classification_splits(self, model):
         oof_pred_proba = np.zeros((len(self.x), len(np.unique(self.y))))
-        test_pred_proba = np.zeros((len(self.x_test), len(np.unique(self.y))))
+        if self.x_test is not None:
+            test_pred_proba = np.zeros((len(self.x_test), len(np.unique(self.y))))
         skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
         for fold, (train_idx, val_idx) in enumerate(skf.split(self.x, self.y)):
             X_train, y_train = self.x.iloc[train_idx], self.y.iloc[train_idx]
@@ -54,7 +55,8 @@ class CuMLTrainer:
     
     def regression_splits(self, model):
         oof_pred = np.zeros(len(self.x))
-        test_pred = np.zeros(len(self.x_test))
+        if self.x_test is not None:
+            test_pred = np.zeros(len(self.x_test))
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
         for fold, (train_idx, val_idx) in enumerate(kf.split(self.x)):
