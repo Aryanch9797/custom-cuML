@@ -11,6 +11,10 @@ from sklearn.metrics import accuracy_score, f1_score, precision_score, recall_sc
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
+from sklearn.ensemble import RandomForestClassifier, RandomForestRegressor
+from sklearn.linear_model import LinearRegression, LogisticRegression, ElasticNet
+from sklearn.neighbors import KNeighborsClassifier, KNeighborsRegressor
+
  
 
 class CuMLTrainer:
@@ -20,7 +24,6 @@ class CuMLTrainer:
         self.x_test = x_test
 
     def classification_splits(self, model):
-
         oof_pred_proba = np.zeros((len(self.x), len(np.unique(self.y))))
         test_pred_proba = np.zeros((len(self.x_test), len(np.unique(self.y))))
         skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
@@ -70,7 +73,7 @@ class CuMLTrainer:
 
         return oof_pred, test_pred
 
-    def RandomForestClassifier(self, fine_tune=False, n_trials=25):
+    def train_RandomForestClassifier(self, fine_tune=False, n_trials=25):
         if fine_tune:
             from finetune_models.RandomForestClassifier import RandomForestClassifier
             model = RandomForestClassifier(None, self.x, self.y, n_trials)
@@ -82,7 +85,7 @@ class CuMLTrainer:
         
         return oof_pred_proba, test_pred_proba
     
-    def RandomForestRegressor(self, fine_tune=False, n_trials=25):
+    def train_RandomForestRegressor(self, fine_tune=False, n_trials=25):
         if fine_tune:
             from finetune_models.RandomForestRegressor import RandomForestRegressor
             model = RandomForestRegressor(None, self.x, self.y, n_trials)
@@ -94,7 +97,7 @@ class CuMLTrainer:
 
         return oof_pred, test_pred
     
-    def LinearRegression(self, fine_tune=False, n_trials=25):
+    def train_LinearRegression(self, fine_tune=False, n_trials=25):
         if fine_tune:
             from finetune_models.LinearRegression import LinearRegression
             model = LinearRegression(None, self.x, self.y, n_trials)
@@ -107,7 +110,7 @@ class CuMLTrainer:
         return oof_pred, test_pred
 
     
-    def LogisticRegression(self, fine_tune=False, n_trials=25):
+    def train_LogisticRegression(self, fine_tune=False, n_trials=25):
         if fine_tune:
             from finetune_models.LogisticRegression import LogisticRegression
             model = LogisticRegression(None, self.x, self.y, n_trials)
@@ -118,7 +121,7 @@ class CuMLTrainer:
         oof_pred_proba, test_pred_proba = self.classification_splits(model)
         return oof_pred_proba, test_pred_proba
     
-    def ElasticNet(self, fine_tune=False, n_trials=25):
+    def train_ElasticNet(self, fine_tune=False, n_trials=25):
         if fine_tune:
             from finetune_models.ElasticNet import ElasticNet
             model = ElasticNet(None, self.x, self.y, n_trials)
@@ -130,7 +133,7 @@ class CuMLTrainer:
         return oof_pred, test_pred
 
     
-    def KNeighborsClassifier(self, fine_tune=False, n_trials=25):
+    def train_KNeighborsClassifier(self, fine_tune=False, n_trials=25):
         if fine_tune:
             from finetune_models.KNeighborsClassifier import KNeighborsClassifier
             model = KNeighborsClassifier(None, self.x, self.y, n_trials)
@@ -141,7 +144,7 @@ class CuMLTrainer:
         oof_pred_proba, test_pred_proba = self.classification_splits(model)
         return oof_pred_proba, test_pred_proba
     
-    def KNeighborsRegressor(self, fine_tune=False, n_trials=25):
+    def train_KNeighborsRegressor(self, fine_tune=False, n_trials=25):
         if fine_tune:
             from finetune_models.KNeighborsRegressor import KNeighborsRegressor
             model = KNeighborsRegressor(None, self.x, self.y, n_trials)
@@ -154,10 +157,10 @@ class CuMLTrainer:
 
     def Baseline_comparison_regressor(self):
         scores = {}
-        rf_oof_pred, rf_test_pred = self.RandomForestRegressor()
-        lr_oof_pred, lr_test_pred = self.LinearRegression()
-        en_oof_pred, en_test_pred = self.ElasticNet()
-        knn_reg_oof_pred, knn_reg_test_pred = self.KNeighborsRegressor()
+        rf_oof_pred, rf_test_pred = self.train_RandomForestRegressor()
+        lr_oof_pred, lr_test_pred = self.train_LinearRegression()
+        en_oof_pred, en_test_pred = self.train_ElasticNet()
+        knn_reg_oof_pred, knn_reg_test_pred = self.train_KNeighborsRegressor()
 
         scores['RandomForestRegressor'] = (mean_squared_error(self.y, rf_oof_pred), r2_score(self.y, rf_oof_pred), mean_absolute_error(self.y, rf_oof_pred))
         scores['LinearRegression'] = (mean_squared_error(self.y, lr_oof_pred), r2_score(self.y, lr_oof_pred), mean_absolute_error(self.y, lr_oof_pred))
@@ -173,6 +176,45 @@ class CuMLTrainer:
             plt.ylabel(metric)
             plt.xlabel('Model')
             plt.xticks(rotation=45)
+            plt.show()
+        return scores
+    
+    def Baseline_comparison_classifier(self):
+        scores = {}
+        rf_oof_pred_proba, rf_test_pred_proba = self.train_RandomForestClassifier()
+        lr_oof_pred_proba, lr_test_pred_proba = self.train_LogisticRegression()
+        knn_oof_pred_proba, knn_test_pred_proba = self.train_KNeighborsClassifier()
+
+        rf_oof_final_preds = np.argmax(rf_oof_pred_proba, axis=1)
+        lr_oof_final_preds = np.argmax(lr_oof_pred_proba, axis=1)
+        knn_oof_final_preds = np.argmax(knn_oof_pred_proba, axis=1)
+
+        scores['RandomForestClassifier'] = (accuracy_score(self.y, rf_oof_final_preds), f1_score(self.y, rf_oof_final_preds, average='weighted'), precision_score(self.y, rf_oof_final_preds, average='weighted'), recall_score(self.y, rf_oof_final_preds, average='weighted'))
+        scores['LogisticRegression'] = (accuracy_score(self.y, lr_oof_final_preds), f1_score(self.y, lr_oof_final_preds, average='weighted'), precision_score(self.y, lr_oof_final_preds, average='weighted'), recall_score(self.y, lr_oof_final_preds, average='weighted'))
+        scores['KNeighborsClassifier'] = (accuracy_score(self.y, knn_oof_final_preds), f1_score(self.y, knn_oof_final_preds, average='weighted'), precision_score(self.y, knn_oof_final_preds, average='weighted'), recall_score(self.y, knn_oof_final_preds, average='weighted'))   
+
+        # Comparision plots
+        metrics = ['Accuracy', 'F1 Score', 'Precision', 'Recall']
+        for i, metric in enumerate(metrics):
+            plt.figure(figsize=(8, 5))
+            sns.barplot(x=list(scores.keys()), y=[scores[model][i] for model in scores])
+            plt.title(f'Model Comparison - {metric}')
+            plt.ylabel(metric)
+            plt.xlabel('Model')
+            plt.xticks(rotation=45)
+            plt.show()
+
+        # Print classification reports
+        for model in scores:
+            print(f"Classification Report for {model}:\n", classification_report(self.y, np.argmax(eval(f"{model.lower()}_oof_pred_proba"), axis=1)))
+
+        # Confusion matrices
+        for model in scores:
+            plt.figure(figsize=(6, 4))
+            sns.heatmap(confusion_matrix(self.y, np.argmax(eval(f"{model.lower()}_oof_pred_proba"), axis=1)), annot=True, fmt='d', cmap='Blues')
+            plt.title(f'Confusion Matrix - {model}')
+            plt.xlabel('Predicted')
+            plt.ylabel('True')
             plt.show()
         return scores
 
