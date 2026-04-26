@@ -209,7 +209,8 @@ class CuMLTrainer:
             print(f"Classification Report for {model}:\n", classification_report(self.y, np.argmax(eval(f"{model.lower()}_oof_pred_proba"), axis=1)))
 
         # Confusion matrices
-        for model in scores:
+        models = ["rf", "lr", "knn"]
+        for model in models:
             plt.figure(figsize=(6, 4))
             sns.heatmap(confusion_matrix(self.y, np.argmax(eval(f"{model.lower()}_oof_pred_proba"), axis=1)), annot=True, fmt='d', cmap='Blues')
             plt.title(f'Confusion Matrix - {model}')
