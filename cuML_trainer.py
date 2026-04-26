@@ -23,7 +23,7 @@ class CuMLTrainer:
         self.y = y
         self.x_test = x_test
 
-    def classification_splits(self, model):
+    def classification_splits(self, model, model_name="Model"):
         oof_pred_proba = np.zeros((len(self.x), len(np.unique(self.y))))
         if self.x_test is not None:
             test_pred_proba = np.zeros((len(self.x_test), len(np.unique(self.y))))
@@ -43,17 +43,17 @@ class CuMLTrainer:
         
         # Final oof results
         oof_final_preds = np.argmax(oof_pred_proba, axis=1)
-        print(f"OOF accuracy: {accuracy_score(self.y, oof_final_preds)}, f1: {f1_score(self.y, oof_final_preds, average='weighted')}, precision: {precision_score(self.y, oof_final_preds, average='weighted')}, recall: {recall_score(self.y, oof_final_preds, average='weighted')}")
-        print("Classification Report:\n", classification_report(self.y, oof_final_preds))
+        print(f"{model_name} OOF accuracy: {accuracy_score(self.y, oof_final_preds)}, f1: {f1_score(self.y, oof_final_preds, average='weighted')}, precision: {precision_score(self.y, oof_final_preds, average='weighted')}, recall: {recall_score(self.y, oof_final_preds, average='weighted')}")
+        print(f" {model_name} Classification Report:\n", classification_report(self.y, oof_final_preds))
         sns.heatmap(confusion_matrix(self.y, oof_final_preds), annot=True, fmt='d', cmap='Blues')
-        plt.title('Confusion Matrix')
+        plt.title(f' {model_name} Confusion Matrix')
         plt.xlabel('Predicted')
         plt.ylabel('True')
         plt.show()
 
         return oof_pred_proba, test_pred_proba if self.x_test is not None else None
     
-    def regression_splits(self, model):
+    def regression_splits(self, model, model_name="Model"):
         oof_pred = np.zeros(len(self.x))
         if self.x_test is not None:
             test_pred = np.zeros(len(self.x_test))
@@ -71,7 +71,7 @@ class CuMLTrainer:
 
             print(f"Fold {fold + 1}, MSE: {mean_squared_error(y_val, y_val_pred)}, R2: {r2_score(y_val, y_val_pred)}, MAE: {mean_absolute_error(y_val, y_val_pred)}")
         # Final oof results
-        print(f"OOF MSE: {mean_squared_error(self.y, oof_pred)}, R2: {r2_score(self.y, oof_pred)}, MAE: {mean_absolute_error(self.y, oof_pred)}")
+        print(f"{model_name} OOF MSE: {mean_squared_error(self.y, oof_pred)}, R2: {r2_score(self.y, oof_pred)}, MAE: {mean_absolute_error(self.y, oof_pred)}")
 
         return oof_pred, test_pred if self.x_test is not None else None
 
@@ -83,7 +83,7 @@ class CuMLTrainer:
             from sklearn.ensemble import RandomForestClassifier
             model = RandomForestClassifier()
 
-        oof_pred_proba, test_pred_proba = self.classification_splits(model)
+        oof_pred_proba, test_pred_proba = self.classification_splits(model, "RandomForestClassifier")
         
         return oof_pred_proba, test_pred_proba
     
@@ -95,7 +95,7 @@ class CuMLTrainer:
             from sklearn.ensemble import RandomForestRegressor
             model = RandomForestRegressor()
         
-        oof_pred, test_pred = self.regression_splits(model)
+        oof_pred, test_pred = self.regression_splits(model, "RandomForestRegressor")
 
         return oof_pred, test_pred
     
@@ -107,7 +107,7 @@ class CuMLTrainer:
             from sklearn.linear_model import LinearRegression
             model = LinearRegression()
         
-        oof_pred, test_pred = self.regression_splits(model)
+        oof_pred, test_pred = self.regression_splits(model, "LinearRegression")
 
         return oof_pred, test_pred
 
@@ -120,7 +120,7 @@ class CuMLTrainer:
             from sklearn.linear_model import LogisticRegression
             model = LogisticRegression()
         
-        oof_pred_proba, test_pred_proba = self.classification_splits(model)
+        oof_pred_proba, test_pred_proba = self.classification_splits(model, "LogisticRegression")
         return oof_pred_proba, test_pred_proba
     
     def train_ElasticNet(self, fine_tune=False, n_trials=25):
@@ -131,7 +131,7 @@ class CuMLTrainer:
             from sklearn.linear_model import ElasticNet
             model = ElasticNet()
         
-        oof_pred, test_pred = self.regression_splits(model)
+        oof_pred, test_pred = self.regression_splits(model, "ElasticNet")
         return oof_pred, test_pred
 
     
@@ -143,7 +143,7 @@ class CuMLTrainer:
             from sklearn.neighbors import KNeighborsClassifier
             model = KNeighborsClassifier()
         
-        oof_pred_proba, test_pred_proba = self.classification_splits(model)
+        oof_pred_proba, test_pred_proba = self.classification_splits(model, "KNeighborsClassifier")
         return oof_pred_proba, test_pred_proba
     
     def train_KNeighborsRegressor(self, fine_tune=False, n_trials=25):
@@ -154,7 +154,7 @@ class CuMLTrainer:
             from sklearn.neighbors import KNeighborsRegressor
             model = KNeighborsRegressor()
         
-        oof_pred, test_pred = self.regression_splits(model)
+        oof_pred, test_pred = self.regression_splits(model, "KNeighborsRegressor")
         return oof_pred, test_pred
 
     def Baseline_comparison_regressor(self):
