@@ -51,7 +51,7 @@ class CuMLTrainer:
         plt.ylabel('True')
         plt.show()
 
-        return oof_pred_proba, test_pred_proba
+        return oof_pred_proba, test_pred_proba if self.x_test is not None else None
     
     def regression_splits(self, model):
         oof_pred = np.zeros(len(self.x))
@@ -73,7 +73,7 @@ class CuMLTrainer:
         # Final oof results
         print(f"OOF MSE: {mean_squared_error(self.y, oof_pred)}, R2: {r2_score(self.y, oof_pred)}, MAE: {mean_absolute_error(self.y, oof_pred)}")
 
-        return oof_pred, test_pred
+        return oof_pred, test_pred if self.x_test is not None else None
 
     def train_RandomForestClassifier(self, fine_tune=False, n_trials=25):
         if fine_tune:
