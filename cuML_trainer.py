@@ -18,15 +18,9 @@ class CuMLTrainer:
         self.x = x
         self.y = y
         self.x_test = x_test
-        
-    def RandomForestClassifier(self, fine_tune=False, n_trials=25):
-        if fine_tune:
-            from finetune_models.RandomForestClassifier import RandomForestClassifier
-            model = RandomForestClassifier(None, self.x, self.y, n_trials)
-        else:
-            from sklearn.ensemble import RandomForestClassifier
-            model = RandomForestClassifier()
-        
+
+    def classification_splits(self, model):
+
         oof_pred_proba = np.zeros((len(self.x), len(np.unique(self.y))))
         test_pred_proba = np.zeros((len(self.x_test), len(np.unique(self.y))))
         skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
@@ -52,6 +46,40 @@ class CuMLTrainer:
         plt.xlabel('Predicted')
         plt.ylabel('True')
         plt.show()
+
+        return oof_pred_proba, test_pred_proba
+    
+    def regression_splits(self, model):
+        oof_pred = np.zeros(len(self.x))
+        test_pred = np.zeros(len(self.x_test))
+        kf = KFold(n_splits=5, shuffle=True, random_state=42)
+
+        for fold, (train_idx, val_idx) in enumerate(kf.split(self.x)):
+            X_train, y_train = self.x.iloc[train_idx], self.y.iloc[train_idx]
+            X_val, y_val = self.x.iloc[val_idx], self.y.iloc[val_idx]
+            
+            model.fit(X_train, y_train)
+            y_val_pred = model.predict(X_val)
+            oof_pred[val_idx] = y_val_pred
+            if self.x_test is not None:
+                test_pred += model.predict(self.x_test) / kf.n_splits
+
+            print(f"Fold {fold + 1}, MSE: {mean_squared_error(y_val, y_val_pred)}, R2: {r2_score(y_val, y_val_pred)}, MAE: {mean_absolute_error(y_val, y_val_pred)}")
+        # Final oof results
+        print(f"OOF MSE: {mean_squared_error(self.y, oof_pred)}, R2: {r2_score(self.y, oof_pred)}, MAE: {mean_absolute_error(self.y, oof_pred)}")
+
+        return oof_pred, test_pred
+
+    def RandomForestClassifier(self, fine_tune=False, n_trials=25):
+        if fine_tune:
+            from finetune_models.RandomForestClassifier import RandomForestClassifier
+            model = RandomForestClassifier(None, self.x, self.y, n_trials)
+        else:
+            from sklearn.ensemble import RandomForestClassifier
+            model = RandomForestClassifier()
+
+        oof_pred_proba, test_pred_proba = self.classification_splits(model)
+        
         return oof_pred_proba, test_pred_proba
     
     def RandomForestRegressor(self, fine_tune=False, n_trials=25):
@@ -62,24 +90,8 @@ class CuMLTrainer:
             from sklearn.ensemble import RandomForestRegressor
             model = RandomForestRegressor()
         
-        oof_pred = np.zeros(len(self.x))
-        test_pred = np.zeros(len(self.x_test))
-        kf = KFold(n_splits=5, shuffle=True, random_state=42)
+        oof_pred, test_pred = self.regression_splits(model)
 
-        for fold, (train_idx, val_idx) in enumerate(kf.split(self.x)):
-            X_train, y_train = self.x.iloc[train_idx], self.y.iloc[train_idx]
-            X_val, y_val = self.x.iloc[val_idx], self.y.iloc[val_idx]
-            
-            model.fit(X_train, y_train)
-            y_val_pred = model.predict(X_val)
-            oof_pred[val_idx] = y_val_pred
-            if self.x_test is not None:
-                test_pred += model.predict(self.x_test) / kf.n_splits
-
-            print(f"Fold {fold + 1}, MSE: {mean_squared_error(y_val, y_val_pred)}, R2: {r2_score(y_val, y_val_pred)}, MAE: {mean_absolute_error(y_val, y_val_pred)}")
-
-        # Final oof results
-        print(f"OOF MSE: {mean_squared_error(self.y, oof_pred)}, R2: {r2_score(self.y, oof_pred)}, MAE: {mean_absolute_error(self.y, oof_pred)}")
         return oof_pred, test_pred
     
     def LinearRegression(self, fine_tune=False, n_trials=25):
@@ -90,25 +102,10 @@ class CuMLTrainer:
             from sklearn.linear_model import LinearRegression
             model = LinearRegression()
         
-        oof_pred = np.zeros(len(self.x))
-        test_pred = np.zeros(len(self.x_test))
-        kf = KFold(n_splits=5, shuffle=True, random_state=42)
+        oof_pred, test_pred = self.regression_splits(model)
 
-        for fold, (train_idx, val_idx) in enumerate(kf.split(self.x)):
-            X_train, y_train = self.x.iloc[train_idx], self.y.iloc[train_idx]
-            X_val, y_val = self.x.iloc[val_idx], self.y.iloc[val_idx]
-            
-            model.fit(X_train, y_train)
-            y_val_pred = model.predict(X_val)
-            oof_pred[val_idx] = y_val_pred
-            if self.x_test is not None:
-                test_pred += model.predict(self.x_test) / kf.n_splits
-
-            print(f"Fold {fold + 1}, MSE: {mean_squared_error(y_val, y_val_pred)}, R2: {r2_score(y_val, y_val_pred)}, MAE: {mean_absolute_error(y_val, y_val_pred)}")
-
-        # Final oof results
-        print(f"OOF MSE: {mean_squared_error(self.y, oof_pred)}, R2: {r2_score(self.y, oof_pred)}, MAE: {mean_absolute_error(self.y, oof_pred)}")
         return oof_pred, test_pred
+
     
     def LogisticRegression(self, fine_tune=False, n_trials=25):
         if fine_tune:
@@ -118,31 +115,7 @@ class CuMLTrainer:
             from sklearn.linear_model import LogisticRegression
             model = LogisticRegression()
         
-        oof_pred_proba = np.zeros((len(self.x), len(np.unique(self.y))))
-        test_pred_proba = np.zeros((len(self.x_test), len(np.unique(self.y))))
-        skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-        for fold, (train_idx, val_idx) in enumerate(skf.split(self.x, self.y)):
-            X_train, y_train = self.x.iloc[train_idx], self.y.iloc[train_idx]
-            X_val, y_val = self.x.iloc[val_idx], self.y.iloc[val_idx]
-            
-            model.fit(X_train, y_train)
-            y_val_pred_proba = model.predict_proba(X_val)
-            oof_pred_proba[val_idx] = y_val_pred_proba
-            if self.x_test is not None:
-                test_pred_proba += model.predict_proba(self.x_test) / skf.n_splits
-
-            val_final_preds = np.argmax(y_val_pred_proba, axis=1)
-            print(f"Fold {fold + 1}, accuracy: {accuracy_score(y_val, val_final_preds)}, f1: {f1_score(y_val, val_final_preds, average='weighted')}, precision: {precision_score(y_val, val_final_preds, average='weighted')}, recall: {recall_score(y_val, val_final_preds, average='weighted')}")
-        
-        # Final oof results
-        oof_final_preds = np.argmax(oof_pred_proba, axis=1)
-        print(f"OOF accuracy: {accuracy_score(self.y, oof_final_preds)}, f1: {f1_score(self.y, oof_final_preds, average='weighted')}, precision: {precision_score(self.y, oof_final_preds, average='weighted')}, recall: {recall_score(self.y, oof_final_preds, average='weighted')}")
-        print("Classification Report:\n", classification_report(self.y, oof_final_preds))
-        sns.heatmap(confusion_matrix(self.y, oof_final_preds), annot=True, fmt='d', cmap='Blues')
-        plt.title('Confusion Matrix')
-        plt.xlabel('Predicted')
-        plt.ylabel('True')
-        plt.show()
+        oof_pred_proba, test_pred_proba = self.classification_splits(model)
         return oof_pred_proba, test_pred_proba
     
     def ElasticNet(self, fine_tune=False, n_trials=25):
@@ -153,25 +126,9 @@ class CuMLTrainer:
             from sklearn.linear_model import ElasticNet
             model = ElasticNet()
         
-        oof_pred = np.zeros(len(self.x))
-        test_pred = np.zeros(len(self.x_test))
-        kf = KFold(n_splits=5, shuffle=True, random_state=42)
-
-        for fold, (train_idx, val_idx) in enumerate(kf.split(self.x)):
-            X_train, y_train = self.x.iloc[train_idx], self.y.iloc[train_idx]
-            X_val, y_val = self.x.iloc[val_idx], self.y.iloc[val_idx]
-            
-            model.fit(X_train, y_train)
-            y_val_pred = model.predict(X_val)
-            oof_pred[val_idx] = y_val_pred
-            if self.x_test is not None:
-                test_pred += model.predict(self.x_test) / kf.n_splits
-
-            print(f"Fold {fold + 1}, MSE: {mean_squared_error(y_val, y_val_pred)}, R2: {r2_score(y_val, y_val_pred)}, MAE: {mean_absolute_error(y_val, y_val_pred)}")
-
-        # Final oof results
-        print(f"OOF MSE: {mean_squared_error(self.y, oof_pred)}, R2: {r2_score(self.y, oof_pred)}, MAE: {mean_absolute_error(self.y, oof_pred)}")
+        oof_pred, test_pred = self.regression_splits(model)
         return oof_pred, test_pred
+
     
     def KNeighborsClassifier(self, fine_tune=False, n_trials=25):
         if fine_tune:
@@ -181,31 +138,7 @@ class CuMLTrainer:
             from sklearn.neighbors import KNeighborsClassifier
             model = KNeighborsClassifier()
         
-        oof_pred_proba = np.zeros((len(self.x), len(np.unique(self.y))))
-        test_pred_proba = np.zeros((len(self.x_test), len(np.unique(self.y))))
-        skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
-        for fold, (train_idx, val_idx) in enumerate(skf.split(self.x, self.y)):
-            X_train, y_train = self.x.iloc[train_idx], self.y.iloc[train_idx]
-            X_val, y_val = self.x.iloc[val_idx], self.y.iloc[val_idx]
-            
-            model.fit(X_train, y_train)
-            y_val_pred_proba = model.predict_proba(X_val)
-            oof_pred_proba[val_idx] = y_val_pred_proba
-            if self.x_test is not None:
-                test_pred_proba += model.predict_proba(self.x_test) / skf.n_splits
-
-            val_final_preds = np.argmax(y_val_pred_proba, axis=1)
-            print(f"Fold {fold + 1}, accuracy: {accuracy_score(y_val, val_final_preds)}, f1: {f1_score(y_val, val_final_preds, average='weighted')}, precision: {precision_score(y_val, val_final_preds, average='weighted')}, recall: {recall_score(y_val, val_final_preds, average='weighted')}")
-        
-        # Final oof results
-        oof_final_preds = np.argmax(oof_pred_proba, axis=1)
-        print(f"OOF accuracy: {accuracy_score(self.y, oof_final_preds)}, f1: {f1_score(self.y, oof_final_preds, average='weighted')}, precision: {precision_score(self.y, oof_final_preds, average='weighted')}, recall: {recall_score(self.y, oof_final_preds, average='weighted')}")
-        print("Classification Report:\n", classification_report(self.y, oof_final_preds))
-        sns.heatmap(confusion_matrix(self.y, oof_final_preds), annot=True, fmt='d', cmap='Blues')
-        plt.title('Confusion Matrix')
-        plt.xlabel('Predicted')
-        plt.ylabel('True')
-        plt.show()
+        oof_pred_proba, test_pred_proba = self.classification_splits(model)
         return oof_pred_proba, test_pred_proba
     
     def KNeighborsRegressor(self, fine_tune=False, n_trials=25):
@@ -216,26 +149,9 @@ class CuMLTrainer:
             from sklearn.neighbors import KNeighborsRegressor
             model = KNeighborsRegressor()
         
-        oof_pred = np.zeros(len(self.x))
-        test_pred = np.zeros(len(self.x_test))
-        kf = KFold(n_splits=5, shuffle=True, random_state=42)
-
-        for fold, (train_idx, val_idx) in enumerate(kf.split(self.x)):
-            X_train, y_train = self.x.iloc[train_idx], self.y.iloc[train_idx]
-            X_val, y_val = self.x.iloc[val_idx], self.y.iloc[val_idx]
-            
-            model.fit(X_train, y_train)
-            y_val_pred = model.predict(X_val)
-            oof_pred[val_idx] = y_val_pred
-            if self.x_test is not None:
-                test_pred += model.predict(self.x_test) / kf.n_splits
-
-            print(f"Fold {fold + 1}, MSE: {mean_squared_error(y_val, y_val_pred)}, R2: {r2_score(y_val, y_val_pred)}, MAE: {mean_absolute_error(y_val, y_val_pred)}")
-
-        # Final oof results
-        print(f"OOF MSE: {mean_squared_error(self.y, oof_pred)}, R2: {r2_score(self.y, oof_pred)}, MAE: {mean_absolute_error(self.y, oof_pred)}")
+        oof_pred, test_pred = self.regression_splits(model)
         return oof_pred, test_pred
-    
+
     def Baseline_comparison_regressor(self):
         scores = {}
         rf_oof_pred, rf_test_pred = self.RandomForestRegressor()
