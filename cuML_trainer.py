@@ -32,8 +32,12 @@ class CuMLTrainer:
             test_pred_proba = np.zeros((len(self.x_test), len(np.unique(self.y))))
         skf = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
         for fold, (train_idx, val_idx) in enumerate(skf.split(self.x, self.y)):
-            X_train, y_train = self.x.iloc[train_idx], self.y.iloc[train_idx]
-            X_val, y_val = self.x.iloc[val_idx], self.y.iloc[val_idx]
+            if hasattr(self.x, 'iloc'):
+                X_train, y_train = self.x.iloc[train_idx], self.y.iloc[train_idx]
+                X_val, y_val = self.x.iloc[val_idx], self.y.iloc[val_idx]
+            else:
+                X_train, y_train = self.x[train_idx], self.y[train_idx]
+                X_val, y_val = self.x[val_idx], self.y[val_idx]
             
             model.fit(X_train, y_train)
             y_val_pred_proba = model.predict_proba(X_val)
@@ -63,8 +67,12 @@ class CuMLTrainer:
         kf = KFold(n_splits=5, shuffle=True, random_state=42)
 
         for fold, (train_idx, val_idx) in enumerate(kf.split(self.x)):
-            X_train, y_train = self.x.iloc[train_idx], self.y.iloc[train_idx]
-            X_val, y_val = self.x.iloc[val_idx], self.y.iloc[val_idx]
+            if hasattr(self.x, 'iloc'):
+                X_train, y_train = self.x.iloc[train_idx], self.y.iloc[train_idx]
+                X_val, y_val = self.x.iloc[val_idx], self.y.iloc[val_idx]
+            else:
+                X_train, y_train = self.x[train_idx], self.y[train_idx]
+                X_val, y_val = self.x[val_idx], self.y[val_idx]
             
             model.fit(X_train, y_train)
             y_val_pred = model.predict(X_val)
