@@ -31,6 +31,7 @@ cuml-cu13==26.4.0
 cupy-cuda13x==14.0.1
 cuvs-cu13==26.4.0
 cuxfilter-cu13==26.4.0
+cycler==0.12.1
 dask==2026.1.1
 dask-cuda==26.4.0
 dask-cudf-cu13==26.4.0
@@ -39,6 +40,7 @@ defusedxml==0.7.1
 distributed==2026.1.1
 distributed-ucxx-cu13==0.49.0
 fastjsonschema==2.21.2
+fonttools==4.62.1
 fqdn==1.5.1
 frozenlist==1.8.0
 fsspec==2026.3.0
@@ -60,6 +62,7 @@ jupyter_server==2.17.0
 jupyter_server_proxy==4.5.0
 jupyter_server_terminals==0.5.4
 jupyterlab_pygments==0.3.0
+kiwisolver==1.5.0
 lark==1.3.1
 lazy-loader==0.5
 libcudf-cu13==26.4.0
@@ -79,6 +82,7 @@ Mako==1.3.11
 Markdown==3.10.2
 markdown-it-py==4.0.0
 MarkupSafe==3.0.3
+matplotlib==3.10.9
 mdit-py-plugins==0.5.0
 mdurl==0.1.2
 mistune==3.2.0
@@ -132,6 +136,7 @@ pylibcudf-cu13==26.4.0
 pylibcugraph-cu13==26.4.0
 pylibraft-cu13==26.4.0
 pyogrio==0.12.1
+pyparsing==3.3.2
 pyproj==3.7.2
 python-dateutil==2.9.0.post0
 python-json-logger==4.1.0
@@ -153,6 +158,7 @@ rpds-py==0.30.0
 scikit-image==0.26.0
 scikit-learn==1.8.0
 scipy==1.17.1
+seaborn==0.13.2
 Send2Trash==2.1.0
 shapely==2.1.2
 simpervisor==1.0.0
