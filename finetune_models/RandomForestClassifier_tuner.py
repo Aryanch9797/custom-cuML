@@ -30,15 +30,6 @@ def build_tuned_RandomForestClassifier(x, y, n_trials=50):
         cv = StratifiedKFold(n_splits=5, shuffle=True, random_state=42)
 
         score = cross_val_score(model, x, y, cv=cv, scoring='f1_weighted', n_jobs=1).mean()
-
-        # --- MEMORY CLEANUP BLOCK ----
-        del X_train, y_train, X_val, y_val
-        gc.collect() 
-
-        # 3. Nuke the massive model object before the next Optuna trial
-        del model
-        gc.collect()
-
         return score
 
     study = optuna.create_study(direction='maximize', study_name="RF_Tuning")
