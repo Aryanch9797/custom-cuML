@@ -422,20 +422,6 @@ class CuMLTrainer:
             plt.xticks(rotation=45)
             plt.show()
 
-        # Print classification reports
-        for model in scores:
-            print(f"Classification Report for {model}:\n", classification_report(self.y, np.argmax(oof_preds[model][0], axis=1)))
-
-        # Confusion matrices
-        models = ["rf", "lr", "knn", "xgb"]
-        for model in models:
-            plt.figure(figsize=(6, 4))
-            sns.heatmap(confusion_matrix(self.y, np.argmax(oof_preds[model][0], axis=1)), annot=True, fmt='d', cmap='Blues')
-            plt.title(f'Confusion Matrix - {model}')
-            plt.xlabel('Predicted')
-            plt.ylabel('True')
-            plt.show()
-
         return scores
 
 
