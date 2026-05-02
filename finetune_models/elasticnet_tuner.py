@@ -1,9 +1,8 @@
-import pandas as pd
-import cuml.accel
-cuml.accel.install()
-import cudf.pandas
 cudf.pandas.install()
-
+cuml.accel.install()
+import cuml.accel
+import cudf.pandas
+import pandas as pd
 from sklearn.linear_model import ElasticNet
 from sklearn.model_selection import cross_val_score, KFold
 import optuna

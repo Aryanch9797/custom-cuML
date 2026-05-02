@@ -1,8 +1,8 @@
-import pandas as pd
-import cuml.accel
-cuml.accel.install()
-import cudf.pandas
 cudf.pandas.install()
+cuml.accel.install()
+import cuml.accel
+import cudf.pandas
+import pandas as pd
 from cuml.accel import is_proxy
 from sklearn.cluster import KMeans
 from sklearn.model_selection import cross_val_score
@@ -401,10 +401,10 @@ class CuMLTrainer:
         oof_preds['knn'] = knn_oof_pred
         oof_preds['xgb'] = xgb_oof_pred
 
-        rf_oof_final_preds = np.argmax(oof_preds['rf'][0], axis=1)
-        lr_oof_final_preds = np.argmax(oof_preds['lr'][0], axis=1)
-        knn_oof_final_preds = np.argmax(oof_preds['knn'][0], axis=1)
-        xgb_oof_final_preds = np.argmax(oof_preds['xgb'][0], axis=1)
+        rf_oof_final_preds = np.argmax(oof_preds['rf'], axis=1)
+        lr_oof_final_preds = np.argmax(oof_preds['lr'], axis=1)
+        knn_oof_final_preds = np.argmax(oof_preds['knn'], axis=1)
+        xgb_oof_final_preds = np.argmax(oof_preds['xgb'], axis=1)
 
         scores['RandomForestClassifier'] = (accuracy_score(self.y, rf_oof_final_preds), f1_score(self.y, rf_oof_final_preds, average='weighted'), precision_score(self.y, rf_oof_final_preds, average='weighted'), recall_score(self.y, rf_oof_final_preds, average='weighted'))
         scores['LogisticRegression'] = (accuracy_score(self.y, lr_oof_final_preds), f1_score(self.y, lr_oof_final_preds, average='weighted'), precision_score(self.y, lr_oof_final_preds, average='weighted'), recall_score(self.y, lr_oof_final_preds, average='weighted'))

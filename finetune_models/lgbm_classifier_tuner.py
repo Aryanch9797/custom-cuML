@@ -1,6 +1,8 @@
-import pandas as pd
-import cudf.pandas
 cudf.pandas.install()
+cuml.accel.install()
+import cuml.accel
+import cudf.pandas
+import pandas as pd
 
 import lightgbm as lgb
 from sklearn.model_selection import cross_val_score, StratifiedKFold

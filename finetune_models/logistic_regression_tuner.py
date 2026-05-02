@@ -1,8 +1,8 @@
-import pandas as pd
-import cuml.accel
+icudf.pandas.install()
 cuml.accel.install()
+import cuml.accel
 import cudf.pandas
-cudf.pandas.install()
+import pandas as pd
 
 from sklearn.linear_model import LogisticRegression
 from sklearn.model_selection import cross_val_score, StratifiedKFold
