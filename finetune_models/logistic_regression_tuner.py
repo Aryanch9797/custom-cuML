@@ -1,7 +1,7 @@
-icudf.pandas.install()
-cuml.accel.install()
-import cuml.accel
 import cudf.pandas
+import cuml.accel
+cudf.pandas.install()
+cuml.accel.install()
 import pandas as pd
 
 from sklearn.linear_model import LogisticRegression

@@ -1,7 +1,7 @@
+import cudf.pandas
+import cuml.accel
 cudf.pandas.install()
 cuml.accel.install()
-import cuml.accel
-import cudf.pandas
 import pandas as pd
 
 from sklearn.neighbors import KNeighborsRegressor
